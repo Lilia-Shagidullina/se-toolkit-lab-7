@@ -142,6 +142,7 @@ Mark unfinished work with `TODO` so it can be found by search:
 
 | Tool | Purpose | Command |
 | --- | --- | --- |
+| ESLint | Linter | `cd frontend && npm run lint` |
 | tsc | Type checker (strict, no emit) | `cd frontend && npx tsc --noEmit` |
 
 ### Markdown tools
