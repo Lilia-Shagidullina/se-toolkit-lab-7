@@ -247,7 +247,7 @@ Complete these steps:
 4. After a successful login, you should see the [shell prompt](./shell.md#shell-prompt):
 
    ```terminal
-   root@<your-vm-name>:~#
+   root@<your-vm-name><vm-index>:~#
    ```
 
    > 🟦 **Note**
@@ -458,7 +458,7 @@ Complete these steps:
    You should see:
 
    ```terminal
-   <user>@<your-vm-name>:~$
+   <user>@<your-vm-name><vm-index>:~$
    ```
 
    > 🟦 **Note**
