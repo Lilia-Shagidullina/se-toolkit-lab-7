@@ -331,6 +331,9 @@ Complete these steps:
 
 #### Type the password for the user `<user>` (REMOTE)
 
+> [!NOTE]
+> Replace the placeholder [`<user>`](./operating-system.md#user-placeholder).
+
 1. When prompted for a password:
 
    1. Type the password for the user `<user>`.
