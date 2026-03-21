@@ -5,7 +5,7 @@ async def handle_labs() -> str:
     """Handle /labs command.
 
     Returns:
-        List of available labs.
+        List of available labs (placeholder for Task 1).
     """
     return (
         "📋 Доступные лабораторные работы:\n\n"

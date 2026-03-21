@@ -17,9 +17,8 @@ from config import get_settings
 from handlers.help import handle_help
 from handlers.health import handle_health
 from handlers.labs import handle_labs
+from handlers.scores import handle_scores
 from handlers.start import handle_start
-from services.lms_client import LMSClient
-from services.llm_client import LLMClient
 
 # Import aiogram only when needed (not in test mode)
 aiogram = None
@@ -27,6 +26,10 @@ try:
     import aiogram  # type: ignore
 except ImportError:
     pass
+
+# Unused imports for Task 1 - will be used in Task 2
+# from services.lms_client import LMSClient
+# from services.llm_client import LLMClient
 
 
 HANDLERS = {
@@ -47,17 +50,16 @@ async def process_command(command: str) -> str:
         The response text.
     """
     # Extract command without arguments
-    cmd = command.split()[0].lower()
+    parts = command.split()
+    cmd = parts[0].lower()
 
     if cmd in HANDLERS:
         return await HANDLERS[cmd]()
 
     if cmd == "/scores":
-        parts = command.split()
-        if len(parts) > 1:
-            lab_id = parts[1]
-            return f"Оценки для {lab_id} (будет реализовано в Task 3)"
-        return "Использование: /scores <lab_id>"
+        # Extract lab_id argument if present
+        lab_id = parts[1] if len(parts) > 1 else None
+        return await handle_scores(lab_id)
 
     return "❓ Неизвестная команда. Используйте /help для списка команд."
 
@@ -118,11 +120,8 @@ async def run_telegram_mode() -> None:
     async def scores_handler(message: types.Message) -> None:
         """Handle /scores command."""
         args = message.text.split()[1:] if message.text else []
-        if args:
-            lab_id = args[0]
-            response = f"Оценки для {lab_id} (будет реализовано в Task 3)"
-        else:
-            response = "Использование: /scores <lab_id>"
+        lab_id = args[0] if args else None
+        response = await handle_scores(lab_id)
         await message.answer(response)
 
     print("Bot is starting...")
@@ -131,8 +130,6 @@ async def run_telegram_mode() -> None:
 
 def main() -> None:
     """Main entry point."""
-    settings = get_settings()
-
     # Check for test mode
     if len(sys.argv) > 1 and sys.argv[1] == "--test":
         if len(sys.argv) < 3:
