@@ -21,4 +21,4 @@ RUN uv sync --frozen
 COPY bot/ ./bot/
 
 # Default command
-CMD ["uv", "run", "bot.py"]
+CMD ["uv", "run", "bot/bot.py"]
