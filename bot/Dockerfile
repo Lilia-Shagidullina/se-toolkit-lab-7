@@ -9,15 +9,19 @@ WORKDIR /app
 # Install uv
 RUN pip install --no-cache-dir uv==0.6.15
 
+# Copy root project files for uv workspace
+COPY pyproject.toml ./
+COPY uv.lock ./
+
 # Copy bot project files
-COPY bot/pyproject.toml ./
-COPY bot/uv.lock ./
+COPY bot/pyproject.toml ./bot/
+COPY bot/uv.lock ./bot/
 
 # Sync dependencies using uv
 RUN uv sync --frozen
 
 # Copy bot source code
-COPY bot/ ./
+COPY bot/ ./bot/
 
 # Default command
 CMD ["uv", "run", "bot.py"]
