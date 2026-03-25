@@ -40,7 +40,7 @@ bot/
 
 ## Task Breakdown
 
-### Task 1: Scaffold (Current)
+### Task 1: Scaffold (Completed)
 
 - [x] Create `bot/pyproject.toml` with dependencies
 - [x] Create `bot/config.py` for configuration management
@@ -48,21 +48,31 @@ bot/
 - [x] Create `bot/services/` directory for API clients
 - [x] Create `bot/bot.py` with `--test` mode support
 - [x] Create `.env.bot.example` with placeholder values
-- [ ] Deploy and verify in Telegram
+- [x] Deploy and verify in Telegram
 
-### Task 2: Backend Integration
+### Task 2: Backend Integration (Completed)
 
-- [ ] Implement full LMS API client with all endpoints
-- [ ] Add error handling and retry logic
-- [ ] Implement `/health` command with actual backend status check
-- [ ] Add connection pooling for HTTP requests
-- [ ] Implement proper authentication with LMS API
+- [x] Implement full LMS API client with all endpoints
+- [x] Add error handling with user-friendly messages (includes actual error details)
+- [x] Implement `/health` command with actual backend status check
+- [x] Implement `/labs` command fetching real data from `/items/` endpoint
+- [x] Implement `/scores <lab_id>` command fetching from `/analytics/pass-rates`
+- [x] Proper authentication with LMS API via Bearer token
+- [x] Handle edge cases: missing arguments, non-existent labs, backend down
+
+**LMS Client Endpoints:**
+- `GET /items/` — list all labs and tasks (for `/health` and `/labs`)
+- `GET /analytics/pass-rates?lab=lab-04` — per-task pass rates (for `/scores`)
+
+**Error Handling:**
+- Connection refused: shows "connection refused (URL). Check that the services are running."
+- HTTP errors: shows "HTTP 502 Bad Gateway. The backend service may be down."
+- Empty data: shows "No data available for lab-04. Check that the lab exists and ETL sync has been run."
 
 ### Task 3: Intent Routing with LLM
 
 - [ ] Integrate LLM API for natural language understanding
 - [ ] Implement intent classification for user messages
-- [ ] Add `/scores <lab_id>` command with LMS integration
 - [ ] Support natural language queries like "what labs are available"
 - [ ] Add context-aware responses based on user history
 

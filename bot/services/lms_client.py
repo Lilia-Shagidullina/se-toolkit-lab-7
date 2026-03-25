@@ -1,6 +1,26 @@
 """LMS API client service."""
 
+from dataclasses import dataclass
+
 import httpx
+
+
+@dataclass
+class HealthStatus:
+    """Health check result."""
+
+    is_healthy: bool
+    item_count: int = 0
+    error_message: str = ""
+
+
+@dataclass
+class PassRateResult:
+    """Pass rate result for a lab."""
+
+    task: str
+    avg_score: float
+    attempts: int
 
 
 class LMSClient:
@@ -19,58 +39,87 @@ class LMSClient:
         if api_key:
             self._headers["Authorization"] = f"Bearer {api_key}"
 
-    async def health_check(self) -> bool:
+    async def health_check(self) -> HealthStatus:
         """Check if the LMS backend is healthy.
 
         Returns:
-            True if the backend is healthy, False otherwise.
+            HealthStatus with health information.
         """
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
-                    f"{self.base_url}/health",
+                    f"{self.base_url}/items/",
                     headers=self._headers,
                     timeout=5.0,
                 )
-                return response.status_code == 200
-        except httpx.HTTPError:
-            return False
+                if response.status_code == 200:
+                    items = response.json()
+                    return HealthStatus(is_healthy=True, item_count=len(items))
+                else:
+                    return HealthStatus(
+                        is_healthy=False,
+                        error_message=f"HTTP {response.status_code} {response.reason_phrase}",
+                    )
+        except httpx.ConnectError as e:
+            return HealthStatus(
+                is_healthy=False,
+                error_message=f"connection refused ({self.base_url}). Check that the services are running.",
+            )
+        except httpx.HTTPStatusError as e:
+            return HealthStatus(
+                is_healthy=False,
+                error_message=f"HTTP {e.response.status_code} {e.response.reason_phrase}. The backend service may be down.",
+            )
+        except httpx.HTTPError as e:
+            return HealthStatus(
+                is_healthy=False,
+                error_message=str(e),
+            )
 
-    async def get_learners(self) -> list[dict]:
-        """Get all learners from the LMS.
+    async def get_items(self) -> list[dict]:
+        """Get all items (labs and tasks) from the LMS.
 
         Returns:
-            List of learner dictionaries.
-        """
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    f"{self.base_url}/learners",
-                    headers=self._headers,
-                    timeout=5.0,
-                )
-                response.raise_for_status()
-                return response.json()
-        except httpx.HTTPError:
-            return []
+            List of item dictionaries.
 
-    async def get_scores(self, lab_id: str) -> list[dict]:
-        """Get scores for a specific lab.
+        Raises:
+            httpx.HTTPError: If the request fails.
+        """
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{self.base_url}/items/",
+                headers=self._headers,
+                timeout=5.0,
+            )
+            response.raise_for_status()
+            return response.json()
+
+    async def get_pass_rates(self, lab_id: str) -> list[PassRateResult]:
+        """Get pass rates for a specific lab.
 
         Args:
-            lab_id: The lab identifier.
+            lab_id: The lab identifier (e.g., "lab-04").
 
         Returns:
-            List of score dictionaries.
+            List of PassRateResult objects.
+
+        Raises:
+            httpx.HTTPError: If the request fails.
         """
-        try:
-            async with httpx.AsyncClient() as client:
-                response = await client.get(
-                    f"{self.base_url}/scores/{lab_id}",
-                    headers=self._headers,
-                    timeout=5.0,
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{self.base_url}/analytics/pass-rates",
+                params={"lab": lab_id},
+                headers=self._headers,
+                timeout=5.0,
+            )
+            response.raise_for_status()
+            data = response.json()
+            return [
+                PassRateResult(
+                    task=item.get("task", "Unknown"),
+                    avg_score=item.get("avg_score", 0.0),
+                    attempts=item.get("attempts", 0),
                 )
-                response.raise_for_status()
-                return response.json()
-        except httpx.HTTPError:
-            return []
+                for item in data
+            ]
