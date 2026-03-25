@@ -4,6 +4,7 @@
 Usage:
     uv run bot.py                  # Run in Telegram mode
     uv run bot.py --test "/start"  # Run in test mode (no Telegram connection)
+    uv run bot.py --test "what labs are available"  # Natural language query
 """
 
 import asyncio
@@ -17,6 +18,7 @@ from config import get_settings
 from handlers.help import handle_help
 from handlers.health import handle_health
 from handlers.labs import handle_labs
+from handlers.message import handle_message
 from handlers.scores import handle_scores
 from handlers.start import handle_start
 
@@ -26,10 +28,6 @@ try:
     import aiogram  # type: ignore
 except ImportError:
     pass
-
-# Unused imports for Task 1 - will be used in Task 2
-# from services.lms_client import LMSClient
-# from services.llm_client import LLMClient
 
 
 HANDLERS = {
@@ -41,27 +39,31 @@ HANDLERS = {
 
 
 async def process_command(command: str) -> str:
-    """Process a command and return the response.
+    """Process a command or message and return the response.
 
     Args:
-        command: The command string (e.g., "/start", "/help").
+        command: The command string (e.g., "/start", "/help") or natural language message.
 
     Returns:
         The response text.
     """
-    # Extract command without arguments
-    parts = command.split()
-    cmd = parts[0].lower()
+    # Check if it's a slash command
+    if command.startswith("/"):
+        parts = command.split()
+        cmd = parts[0].lower()
 
-    if cmd in HANDLERS:
-        return await HANDLERS[cmd]()
+        if cmd in HANDLERS:
+            return await HANDLERS[cmd]()
 
-    if cmd == "/scores":
-        # Extract lab_id argument if present
-        lab_id = parts[1] if len(parts) > 1 else None
-        return await handle_scores(lab_id)
+        if cmd == "/scores":
+            # Extract lab_id argument if present
+            lab_id = parts[1] if len(parts) > 1 else None
+            return await handle_scores(lab_id)
 
-    return "❓ Неизвестная команда. Используйте /help для списка команд."
+        return "❓ Неизвестная команда. Используйте /help для списка команд."
+    else:
+        # Natural language message - use LLM routing
+        return await handle_message(command, debug=True)
 
 
 async def run_test_mode(command: str) -> None:
@@ -88,15 +90,30 @@ async def run_telegram_mode() -> None:
 
     from aiogram import Bot, Dispatcher, types
     from aiogram.filters import Command
+    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
     bot = Bot(token=settings.bot_token)
     dp = Dispatcher()
+
+    # Create inline keyboard for /start
+    start_keyboard = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="📋 Labs", callback_data="labs"),
+                InlineKeyboardButton(text="📊 Scores", callback_data="scores_help"),
+            ],
+            [
+                InlineKeyboardButton(text="💚 Health", callback_data="health"),
+                InlineKeyboardButton(text="❓ Help", callback_data="help"),
+            ],
+        ]
+    )
 
     @dp.message(Command("start"))
     async def start_handler(message: types.Message) -> None:
         """Handle /start command."""
         response = await handle_start()
-        await message.answer(response)
+        await message.answer(response, reply_markup=start_keyboard)
 
     @dp.message(Command("help"))
     async def help_handler(message: types.Message) -> None:
@@ -123,6 +140,33 @@ async def run_telegram_mode() -> None:
         lab_id = args[0] if args else None
         response = await handle_scores(lab_id)
         await message.answer(response)
+
+    @dp.message()
+    async def message_handler(message: types.Message) -> None:
+        """Handle natural language messages."""
+        if message.text:
+            response = await handle_message(message.text, debug=True)
+            await message.answer(response)
+
+    @dp.callback_query()
+    async def callback_handler(callback_query: types.CallbackQuery) -> None:
+        """Handle inline button callbacks."""
+        data = callback_query.data
+        response = ""
+
+        if data == "labs":
+            response = await handle_labs()
+        elif data == "health":
+            response = await handle_health()
+        elif data == "help":
+            response = await handle_help()
+        elif data == "scores_help":
+            response = "📊 Чтобы посмотреть оценки, отправьте /scores lab-04 (замените lab-04 на нужный номер лабы). Или спросите 'покажи оценки для lab-04'"
+
+        if response:
+            await callback_query.message.answer(response)
+
+        await callback_query.answer()
 
     print("Bot is starting...")
     await dp.start_polling(bot)

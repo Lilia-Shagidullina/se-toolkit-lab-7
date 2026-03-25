@@ -26,6 +26,8 @@ class BotSettings(BaseSettings):
 
     # LLM API configuration
     llm_api_key: str = ""
+    llm_api_base_url: str = "http://localhost:42005"
+    llm_api_model: str = "qwen-2.5-72b"
 
 
 def get_settings() -> BotSettings:
