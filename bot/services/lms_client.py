@@ -137,3 +137,178 @@ class LMSClient:
             raise RuntimeError(f"Backend returned HTTP {e.response.status_code}")
         except httpx.TimeoutException:
             raise RuntimeError(f"Backend request timed out")
+
+    async def get_scores(self, lab_id: str) -> list[dict]:
+        """Get score distribution for a specific lab.
+
+        Args:
+            lab_id: The lab identifier.
+
+        Returns:
+            List of score bucket dictionaries.
+        """
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.base_url}/analytics/scores",
+                    params={"lab": lab_id},
+                    headers=self._headers,
+                    timeout=5.0,
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.ConnectError:
+            raise RuntimeError(f"Cannot connect to backend at {self.base_url}")
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(f"Backend returned HTTP {e.response.status_code}")
+        except httpx.TimeoutException:
+            raise RuntimeError(f"Backend request timed out")
+
+    async def get_timeline(self, lab_id: str) -> list[dict]:
+        """Get submissions timeline for a specific lab.
+
+        Args:
+            lab_id: The lab identifier.
+
+        Returns:
+            List of timeline entries.
+        """
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.base_url}/analytics/timeline",
+                    params={"lab": lab_id},
+                    headers=self._headers,
+                    timeout=5.0,
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.ConnectError:
+            raise RuntimeError(f"Cannot connect to backend at {self.base_url}")
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(f"Backend returned HTTP {e.response.status_code}")
+        except httpx.TimeoutException:
+            raise RuntimeError(f"Backend request timed out")
+
+    async def get_groups(self, lab_id: str) -> list[dict]:
+        """Get per-group performance for a specific lab.
+
+        Args:
+            lab_id: The lab identifier.
+
+        Returns:
+            List of group performance dictionaries.
+        """
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.base_url}/analytics/groups",
+                    params={"lab": lab_id},
+                    headers=self._headers,
+                    timeout=5.0,
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.ConnectError:
+            raise RuntimeError(f"Cannot connect to backend at {self.base_url}")
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(f"Backend returned HTTP {e.response.status_code}")
+        except httpx.TimeoutException:
+            raise RuntimeError(f"Backend request timed out")
+
+    async def get_top_learners(self, lab_id: str, limit: int = 10) -> list[dict]:
+        """Get top learners for a specific lab.
+
+        Args:
+            lab_id: The lab identifier.
+            limit: Number of top learners to return.
+
+        Returns:
+            List of top learner dictionaries.
+        """
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.base_url}/analytics/top-learners",
+                    params={"lab": lab_id, "limit": limit},
+                    headers=self._headers,
+                    timeout=5.0,
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.ConnectError:
+            raise RuntimeError(f"Cannot connect to backend at {self.base_url}")
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(f"Backend returned HTTP {e.response.status_code}")
+        except httpx.TimeoutException:
+            raise RuntimeError(f"Backend request timed out")
+
+    async def get_completion_rate(self, lab_id: str) -> dict:
+        """Get completion rate for a specific lab.
+
+        Args:
+            lab_id: The lab identifier.
+
+        Returns:
+            Completion rate dictionary.
+        """
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.base_url}/analytics/completion-rate",
+                    params={"lab": lab_id},
+                    headers=self._headers,
+                    timeout=5.0,
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.ConnectError:
+            raise RuntimeError(f"Cannot connect to backend at {self.base_url}")
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(f"Backend returned HTTP {e.response.status_code}")
+        except httpx.TimeoutException:
+            raise RuntimeError(f"Backend request timed out")
+
+    async def get_learners(self) -> list[dict]:
+        """Get all enrolled learners.
+
+        Returns:
+            List of learner dictionaries.
+        """
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.base_url}/learners/",
+                    headers=self._headers,
+                    timeout=5.0,
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.ConnectError:
+            raise RuntimeError(f"Cannot connect to backend at {self.base_url}")
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(f"Backend returned HTTP {e.response.status_code}")
+        except httpx.TimeoutException:
+            raise RuntimeError(f"Backend request timed out")
+
+    async def trigger_sync(self) -> dict:
+        """Trigger ETL sync.
+
+        Returns:
+            Sync result dictionary.
+        """
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    f"{self.base_url}/pipeline/sync",
+                    headers=self._headers,
+                    timeout=10.0,
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.ConnectError:
+            raise RuntimeError(f"Cannot connect to backend at {self.base_url}")
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(f"Backend returned HTTP {e.response.status_code}")
+        except httpx.TimeoutException:
+            raise RuntimeError(f"Backend request timed out")
