@@ -10,13 +10,13 @@ async def handle_labs() -> str:
     Returns:
         List of available labs from the backend.
     """
-    settings = get_settings()
-    client = LMSClient(
-        base_url=settings.lms_api_base_url,
-        api_key=settings.lms_api_key,
-    )
-
     try:
+        settings = get_settings()
+        client = LMSClient(
+            base_url=settings.lms_api_base_url,
+            api_key=settings.lms_api_key,
+        )
+
         items = await client.get_items()
     except Exception as e:
         return f"❌ Backend error: {e}"
