@@ -10,13 +10,16 @@ async def handle_health() -> str:
     Returns:
         System health status from the backend.
     """
-    settings = get_settings()
-    client = LMSClient(
-        base_url=settings.lms_api_base_url,
-        api_key=settings.lms_api_key,
-    )
+    try:
+        settings = get_settings()
+        client = LMSClient(
+            base_url=settings.lms_api_base_url,
+            api_key=settings.lms_api_key,
+        )
 
-    status = await client.health_check()
+        status = await client.health_check()
+    except Exception as e:
+        return f"❌ Backend error: {e}"
 
     if status.is_healthy:
         return f"✅ Backend is healthy. {status.item_count} items available."

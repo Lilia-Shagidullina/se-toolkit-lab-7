@@ -85,14 +85,21 @@ class LMSClient:
         Raises:
             httpx.HTTPError: If the request fails.
         """
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.base_url}/items/",
-                headers=self._headers,
-                timeout=5.0,
-            )
-            response.raise_for_status()
-            return response.json()
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.base_url}/items/",
+                    headers=self._headers,
+                    timeout=5.0,
+                )
+                response.raise_for_status()
+                return response.json()
+        except httpx.ConnectError:
+            raise RuntimeError(f"Cannot connect to backend at {self.base_url}")
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(f"Backend returned HTTP {e.response.status_code}")
+        except httpx.TimeoutException:
+            raise RuntimeError(f"Backend request timed out")
 
     async def get_pass_rates(self, lab_id: str) -> list[PassRateResult]:
         """Get pass rates for a specific lab.
@@ -104,22 +111,29 @@ class LMSClient:
             List of PassRateResult objects.
 
         Raises:
-            httpx.HTTPError: If the request fails.
+            RuntimeError: If the request fails.
         """
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.base_url}/analytics/pass-rates",
-                params={"lab": lab_id},
-                headers=self._headers,
-                timeout=5.0,
-            )
-            response.raise_for_status()
-            data = response.json()
-            return [
-                PassRateResult(
-                    task=item.get("task", "Unknown"),
-                    avg_score=item.get("avg_score", 0.0),
-                    attempts=item.get("attempts", 0),
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{self.base_url}/analytics/pass-rates",
+                    params={"lab": lab_id},
+                    headers=self._headers,
+                    timeout=5.0,
                 )
-                for item in data
-            ]
+                response.raise_for_status()
+                data = response.json()
+                return [
+                    PassRateResult(
+                        task=item.get("task", "Unknown"),
+                        avg_score=item.get("avg_score", 0.0),
+                        attempts=item.get("attempts", 0),
+                    )
+                    for item in data
+                ]
+        except httpx.ConnectError:
+            raise RuntimeError(f"Cannot connect to backend at {self.base_url}")
+        except httpx.HTTPStatusError as e:
+            raise RuntimeError(f"Backend returned HTTP {e.response.status_code}")
+        except httpx.TimeoutException:
+            raise RuntimeError(f"Backend request timed out")

@@ -16,13 +16,13 @@ async def handle_scores(lab_id: str | None = None) -> str:
     if not lab_id:
         return "Usage: /scores <lab_id>\nExample: /scores lab-04"
 
-    settings = get_settings()
-    client = LMSClient(
-        base_url=settings.lms_api_base_url,
-        api_key=settings.lms_api_key,
-    )
-
     try:
+        settings = get_settings()
+        client = LMSClient(
+            base_url=settings.lms_api_base_url,
+            api_key=settings.lms_api_key,
+        )
+
         pass_rates = await client.get_pass_rates(lab_id)
     except Exception as e:
         return f"❌ Backend error: {e}"
