@@ -1,13 +1,18 @@
 """Configuration for the LMS bot."""
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Get the path to the root directory (parent of bot/)
+ROOT_DIR = Path(__file__).resolve().parent.parent
 
 
 class BotSettings(BaseSettings):
     """Bot configuration settings."""
 
     model_config = SettingsConfigDict(
-        env_file=".env.bot.secret",
+        env_file=ROOT_DIR / ".env.bot.secret",
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -16,7 +21,7 @@ class BotSettings(BaseSettings):
     bot_token: str = ""
 
     # LMS API configuration
-    lms_api_base_url: str = "http://localhost:8000"
+    lms_api_base_url: str = "http://localhost:42002"
     lms_api_key: str = ""
 
     # LLM API configuration
