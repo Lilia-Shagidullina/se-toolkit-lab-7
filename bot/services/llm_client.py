@@ -255,7 +255,7 @@ class LLMClient:
             {"role": "user", "content": message},
         ]
 
-        max_iterations = 5
+        max_iterations = 10
         for iteration in range(max_iterations):
             if debug:
                 print(
@@ -304,7 +304,7 @@ class LLMClient:
             if debug:
                 print(f"[summary] Feeding {len(tool_calls)} tool result(s) back to LLM", file=sys.stderr)
 
-        return "I couldn't complete the request. Please try again with a simpler question."
+        return "This request requires multiple data lookups. Please try a simpler question like 'show me scores for lab-04' or 'what labs are available?'"
 
     async def _call_llm(
         self, messages: list[dict[str, Any]], tools: list[dict[str, Any]]
