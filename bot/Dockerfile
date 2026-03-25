@@ -2,12 +2,9 @@
 # Uses uv for dependency management (no requirements.txt)
 
 ARG REGISTRY_PREFIX=harbor.pg.innopolis.university/docker-hub-cache/
-FROM ${REGISTRY_PREFIX}python:3.14.2-slim
+FROM ${REGISTRY_PREFIX}astral/uv:python3.14-bookworm-slim
 
 WORKDIR /app
-
-# Install uv
-RUN pip install --no-cache-dir uv==0.6.15
 
 # Copy root project files for uv workspace
 COPY pyproject.toml ./
